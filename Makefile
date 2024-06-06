@@ -7,17 +7,8 @@ make lint:
 lint-fix:
 	npx eslint . --fix
 
-install: install-deps
-	npx simple-git-hooks
-
-run:
-	bin/nodejs-package.js 10
-
-install-deps:
-	npm ci --legacy-peer-deps
-
 test:
-	npm test
+	NODE_OPTIONS=--experimental-vm-modules npx jest
 
 test-coverage:
 	npm test -- --coverage --coverageProvider=v8
