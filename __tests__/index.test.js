@@ -1,7 +1,7 @@
 import path from 'node:path';
-import resultStylish from '../__fixtures__/result.js';
-import resultPlain from '../__fixtures__/resultPlain.js';
-import resultJSON from '../__fixtures__/resultJSON.js';
+import resultStylish from '../__fixtures__/result.txt';
+import resultPlain from '../__fixtures__/resultPlain.txt';
+import resultJSON from '../__fixtures__/resultJSON.txt';
 import gendiff from '../src/index.js';
 
 const testList = [
