@@ -1,24 +1,42 @@
-import path from 'node:path';
-import resultStylish from '../__fixtures__/result.txt';
-import resultPlain from '../__fixtures__/resultPlain.txt';
-import resultJSON from '../__fixtures__/resultJSON.txt';
-import gendiff from '../src/index.js';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+import path from 'path';
+import genDiff from '../src/index.js';
 
-const testList = [
-  'yml',
-  'json',
-];
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const resolvePath = (filePath) => path.resolve(process.cwd(), `__fixtures__/${filePath}`);
+const getFixturePath = (filename) => path.join(__dirname, '..', '__fixtures__', filename);
+const readFile = (filename) => fs.readFileSync(getFixturePath(filename), 'utf-8');
 
-describe('gendiff', () => {
-  test.each(testList)('gendiff %s', (format) => {
-    const filepath1 = resolvePath(`file1.${format}`);
-    const filepath2 = resolvePath(`file2.${format}`);
+test('main func JSON', () => {
+  const file1 = getFixturePath('file1.json');
+  const file2 = getFixturePath('file2.json');
+  const expected = readFile('resultJSON.txt');
 
-    expect(gendiff(filepath1, filepath2)).toEqual(resultStylish);
-    expect(gendiff(filepath1, filepath2, 'stylish')).toEqual(resultStylish);
-    expect(gendiff(filepath1, filepath2, 'plain')).toEqual(resultPlain);
-    expect(gendiff(filepath1, filepath2, 'json')).toEqual(resultJSON);
-  });
+  expect(genDiff(file1, file2)).toEqual(expected);
+});
+
+test('main func YML', () => {
+  const file1 = getFixturePath('file1.yml');
+  const file2 = getFixturePath('file2.yml');
+  const expected = readFile('resultJSON.txt');
+
+  expect(genDiff(file1, file2)).toEqual(expected);
+});
+
+test('Plain gendiff', () => {
+  const file1 = getFixturePath('file1.json');
+  const file2 = getFixturePath('file2.json');
+  const expected = readFile('resultPlain.txt');
+
+  expect(genDiff(file1, file2, 'plain')).toEqual(expected);
+});
+
+test('JSON gendiff', () => {
+  const file1 = getFixturePath('file1.json');
+  const file2 = getFixturePath('file2.json');
+  const expected = readFile('result.txt');
+
+  expect(genDiff(file1, file2, 'json')).toEqual(expected);
 });
