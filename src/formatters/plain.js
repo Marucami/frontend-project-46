@@ -1,33 +1,35 @@
 import _ from 'lodash';
 
-const showValue = (value) => {
+const stringify = (value) => {
   if (_.isObject(value)) {
     return '[complex value]';
   }
-  return (typeof value === 'string') ? `'${value}'` : value;
+
+  return _.isString(value) ? `'${value}'` : String(value);
 };
 
-const plain = (resultOfCompare) => {
-  const iter = (node, path) => {
-    const lines = node
-      .filter((item) => item.status !== 'unchanged')
-      .map((item) => {
-        switch (item.status) {
-          case 'nested':
-            return iter(item.children, `${path}${item.name}.`);
-          case 'changed':
-            return `Property '${path}${item.name}' was updated. From ${showValue(item.oldValue, path)} to ${showValue(item.newValue, path)}`;
-          case 'added':
-            return `Property '${path}${item.name}' was added with value: ${showValue(item.newValue, path)}`;
-          case 'removed':
-            return `Property '${path}${item.name}' was removed`;
-          default:
-            return 'error';
-        }
-      });
-    return [...lines].join('\n');
-  };
-  return iter(resultOfCompare, '');
+const plain = (dataFile, propertyKey = '') => {
+  const rows = dataFile.flatMap((node) => {
+    const {
+      type, key, value, value1, value2,
+    } = node;
+    const currentKey = propertyKey ? `${propertyKey}.${key}` : key;
+    switch (type) {
+      case 'nested':
+        return plain(value, currentKey);
+      case 'added':
+        return `Property '${currentKey}' was added with value: ${stringify(value)}`;
+      case 'deleted':
+        return `Property '${currentKey}' was removed`;
+      case 'changed':
+        return `Property '${currentKey}' was updated. From ${stringify(value1)} to ${stringify(value2)}`;
+      case 'unchanged':
+        return [];
+      default:
+        throw new Error(`Received node type ${type} is unknown.`);
+    }
+  });
+  return rows.join('\n');
 };
 
 export default plain;
