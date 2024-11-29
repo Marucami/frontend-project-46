@@ -1,28 +1,43 @@
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import path from 'path';
+import genDiff from '../src/formatters/index.js';
 
-import fs from "fs"; 
-import path from "path";
-//import { fileUrlToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-import { genDiff } from "../src/index.js";
-import test from "node:test";
+const getFixturePath = (filename) => path.join(__dirname, '..', '__fixtures__', filename);
+const readFile = (filename) => fs.readFileSync(getFixturePath(filename), 'utf-8');
 
-//const __filename = fileUrlToPath(import.meta.url); 
-//const __dirname = path.dirname(__filename);
+const filepath1 = getFixturePath('file1.json');
+const filepath2 = getFixturePath('file2.json');
+const filepath3 = getFixturePath('file3.yml');
+const filepath4 = getFixturePath('file4.yaml');
 
-function getFixturePath(filePath){
-return path.join('__tests__', '..' , '__fixtures__', filePath); 
-}
+const pattern1 = readFile('pattern1.txt');
+const pattern2 = readFile('pattern2.txt');
+const pattern3 = readFile('pattern3.txt');
+const pattern4 = readFile('pattern4.txt');
+const pattern5 = readFile('pattern5.txt');
+const pattern6 = readFile('pattern6.txt');
 
-function fileData(filePath){
-  return fs.readFileSync(filePath, 'utf-8');
-}
+test('default output', () => {
+  expect(genDiff(filepath1, filepath2)).toEqual(pattern1);
+  expect(genDiff(filepath3, filepath4)).toEqual(pattern4);
+});
 
-const referenceFlatFiles = fileData('./__fixtures__/flat-file-test.txt');
-const f = fs.readFileSync('./__fixtures__/flat-file-test.txt', 'utf-8')
+test.each([
+  { format: 'stylish', expected: pattern1 },
+  { format: 'plain', expected: pattern2 },
+  { format: 'json', expected: pattern3 },
+])('json files. Output: $format', ({ format, expected }) => {
+  expect(genDiff(filepath1, filepath2, format)).toBe(expected);
+});
 
-test('Flat JSON', () => {
-  const file1= getFixturePath('file1.json'); 
-  const file2 = getFixturePath('file2.json');
-
-expect(genDiff(file1, file2)).toEqual(referenceFlatFiles);
-})
+test.each([
+  { format: 'stylish', expected: pattern4 },
+  { format: 'plain', expected: pattern5 },
+  { format: 'json', expected: pattern6 },
+])('yml & yaml files. Output: $format', ({ format, expected }) => {
+  expect(genDiff(filepath3, filepath4, format)).toBe(expected);
+});
