@@ -1,20 +1,24 @@
-import fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
+import path from 'node:path';
+import resultStylish from '../__fixtures__/result.js';
+import resultPlain from '../__fixtures__/resultPlain.js';
+import resultJSON from '../__fixtures__/resultJSON.js';
 import gendiff from '../src/index.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const getFilePath = (fileName) => path.join(__dirname, '..', '__fixtures__', fileName);
+const testList = [
+  'yml',
+  'json',
+];
 
-const getExpectedResult = (fileName) => fs.readFileSync(getFilePath(fileName), 'utf-8');
-const fileFormat = ['json', 'yml', 'yaml'];
+const resolvePath = (filePath) => path.resolve(process.cwd(), `__fixtures__/${filePath}`);
 
-test.each(fileFormat)('compare %p files', (format) => {
-  const file1 = getFilePath(`file1.${format}`);
-  const file2 = getFilePath(`file2.${format}`);
+describe('gendiff', () => {
+  test.each(testList)('gendiff %s', (format) => {
+    const filepath1 = resolvePath(`file1.${format}`);
+    const filepath2 = resolvePath(`file2.${format}`);
 
-  expect(gendiff(file1, file2, 'stylish')).toEqual(getExpectedResult('expected_result_stylish.txt'));
-  expect(gendiff(file1, file2, 'plain')).toEqual(getExpectedResult('expected_result_plain.txt'));
-  expect(gendiff(file1, file2, 'json')).toEqual(getExpectedResult('expected_result_json.json'));
+    expect(gendiff(filepath1, filepath2)).toEqual(resultStylish);
+    expect(gendiff(filepath1, filepath2, 'stylish')).toEqual(resultStylish);
+    expect(gendiff(filepath1, filepath2, 'plain')).toEqual(resultPlain);
+    expect(gendiff(filepath1, filepath2, 'json')).toEqual(resultJSON);
+  });
 });
