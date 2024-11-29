@@ -1,26 +1,30 @@
 import _ from 'lodash';
 
-const buildTreeDiff = (obj1, obj2) => {
-  const sortedKeys = _.sortBy(_.union(Object.keys(obj1), Object.keys(obj2)));
-  return sortedKeys.map((key) => {
-    const value1 = obj1[key];
-    const value2 = obj2[key];
-    if (Object.hasOwn(obj1, key) && Object.hasOwn(obj2, key)) {
-      if (_.isObject(value1) && _.isObject(value2)) {
-        return { name: key, status: 'nested', children: buildTreeDiff(value1, value2) };
-      }
-      if (value1 === value2) {
-        return { name: key, status: 'unchanged', value: value1 };
-      }
+const comparer = (dataFile1, dataFile2) => {
+  const keys = _.sortBy(_.union(_.keys(dataFile1), _.keys(dataFile2)));
+
+  const getDiff = keys.map((key) => {
+    if (_.isPlainObject(dataFile1[key]) && _.isPlainObject(dataFile2[key])) {
+      return { key, type: 'nested', value: comparer(dataFile1[key], dataFile2[key]) };
+    }
+
+    if (!_.has(dataFile1, key)) {
+      return { key, type: 'added', value: dataFile2[key] };
+    }
+
+    if (!_.has(dataFile2, key)) {
+      return { key, type: 'deleted', value: dataFile1[key] };
+    }
+
+    if (dataFile1[key] !== dataFile2[key]) {
       return {
-        name: key, status: 'changed', oldValue: value1, newValue: value2,
+        key, type: 'changed', value1: dataFile1[key], value2: dataFile2[key],
       };
     }
-    if (Object.hasOwn(obj1, key)) {
-      return { name: key, status: 'removed', oldValue: value1 };
-    }
-    return { name: key, status: 'added', newValue: value2 };
+    return { key, type: 'unchanged', value: dataFile2[key] };
   });
+
+  return getDiff;
 };
 
-export default buildTreeDiff;
+export default comparer;
